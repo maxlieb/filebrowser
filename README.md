@@ -18,6 +18,7 @@ Modified files are:
 /src/components/files/ListingItem.vue
 
 ChadGPT havevily used in generating the code.
+
 Although I have some programming skills and even a software engeneering degree, my career path led me to IT and System Administration.
 This is basically my first experience with golang, so don't be harsh.
 
