@@ -12,6 +12,7 @@ customaizations include:
 ** Obvoisly requires ffmpeg, an intel card + drivers.
 
 Modified files are:
+
 /http/preview.go
 /src/components/files/ListingItem.vue
 
