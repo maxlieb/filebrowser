@@ -10,6 +10,7 @@ customaizations include:
 * Thumbnails will stop generating when leaving a folder to allow generating for the next folder before finishing the last one.
 
 ** Obvoisly requires ffmpeg, an intel card + drivers.
+
 ** uses the ctx utility to impelent the feature of stoppeing generation, so probably not compatible with windows.
 
 Modified files are:
