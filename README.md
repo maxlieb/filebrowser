@@ -11,7 +11,7 @@ customaizations include:
 
 ** Obvoisly requires ffmpeg, an intel card + drivers.
 
-** uses the ctx utility to impelent the feature of stoppeing generation, so probably not compatible with windows.
+** Uses the ctx utility to impelent the feature of stoppeing generation, so probably not compatible with windows.
 
 Modified files are:
 
