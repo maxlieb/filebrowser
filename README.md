@@ -1,3 +1,24 @@
+Fork info:
+This fork implements generating video thumbnails.
+Inspired by this fork https://github.com/cody82/filebrowser/tree/videopreview
+and further customized.
+
+customaizations include:
+* Generation into a .thumbnails folder with files in addition to cache mechanism.
+* Intel hardware QSV acceleration.
+* Lower priority of ffmped process to prevent server p[erformance degradation.
+* Thumbnails will stop generating when leaving a folder to allow generating for the next folder before finishing the last one.
+
+** Obvoisly requires ffmpeg, an intel card + drivers.
+
+Modified files are:
+/http/preview.go
+/src/components/files/ListingItem.vue
+
+ChadGPT havevily used in generating the code.
+Although I have some programming skills and even a software engeneering degree, my career path led me to IT and System Administration.
+This is basically my first experience with golang, so don't be harsh.
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/filebrowser/logo/master/banner.png" width="550"/>
 </p>
