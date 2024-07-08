@@ -7,7 +7,6 @@ and further customized.
 customaizations include:
 * Generation into a .thumbnails subfolder with files in addition to cache mechanism.
 * Intel hardware QSV acceleration.
-* Lower priority of ffmped process to prevent server p[erformance degradation.
 * Thumbnails will stop generating when leaving a folder to allow generating for the next folder before finishing the last one.
 
 ** Obvoisly requires ffmpeg, an intel card + drivers.
