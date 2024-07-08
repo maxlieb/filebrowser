@@ -1,5 +1,6 @@
 Fork info:
 This fork implements generating video thumbnails.
+
 Inspired by this fork https://github.com/cody82/filebrowser/tree/videopreview
 and further customized.
 
