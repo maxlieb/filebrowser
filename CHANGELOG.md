@@ -2,6 +2,97 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.32.0](https://github.com/filebrowser/filebrowser/compare/v2.31.2...v2.32.0) (2025-01-31)
+
+
+### Features
+
+* create user on proxy authentication if user does not exist ([#3569](https://github.com/filebrowser/filebrowser/issues/3569)) ([209acf2](https://github.com/filebrowser/filebrowser/commit/209acf2429b06e2e8d78218937c59fd7e7edd1be))
+
+
+### Bug Fixes
+
+* add proper healthcheck for S6 containers ([#3691](https://github.com/filebrowser/filebrowser/issues/3691)) ([045064f](https://github.com/filebrowser/filebrowser/commit/045064f8b8bf9f86058e877448085e38da8b3f2e))
+* disk usage refreshing ([#3692](https://github.com/filebrowser/filebrowser/issues/3692)) ([bbdd313](https://github.com/filebrowser/filebrowser/commit/bbdd313705b8d253f0c47ad717a6e47b2f46e719))
+* Fix user creation on proxy auth ([#3666](https://github.com/filebrowser/filebrowser/issues/3666)) ([5300d00](https://github.com/filebrowser/filebrowser/commit/5300d00d2e7dbb80a252aff57e100113f02506c3))
+* prompts disappearing on copy / move / upload ([#3537](https://github.com/filebrowser/filebrowser/issues/3537)) ([d1c84a8](https://github.com/filebrowser/filebrowser/commit/d1c84a84123c77dede05c023b3697a432b56122c))
+
+
+### Refactorings
+
+* Fix eslint warnings ([#3698](https://github.com/filebrowser/filebrowser/issues/3698)) ([0201f9c](https://github.com/filebrowser/filebrowser/commit/0201f9c5c4dd2a4d5a3503e59cdb8045e8d3a91f)), closes [#3407](https://github.com/filebrowser/filebrowser/issues/3407)
+
+
+### Build
+
+* **deps:** bump cross-spawn from 7.0.3 to 7.0.6 in /tools ([#3601](https://github.com/filebrowser/filebrowser/issues/3601)) ([25372ed](https://github.com/filebrowser/filebrowser/commit/25372edb5c0e616e82b76b5f523633af57d347e0))
+* **deps:** bump github.com/golang-jwt/jwt/v4 from 4.5.0 to 4.5.1 ([#3574](https://github.com/filebrowser/filebrowser/issues/3574)) ([2fdea73](https://github.com/filebrowser/filebrowser/commit/2fdea73430011846276a1cda52458f1d670f5ea7))
+* **deps:** bump golang.org/x/crypto from 0.26.0 to 0.31.0 ([#3634](https://github.com/filebrowser/filebrowser/issues/3634)) ([e92dbb4](https://github.com/filebrowser/filebrowser/commit/e92dbb4bb8b7894264fbf0a48a641712c3b68766))
+* **deps:** bump golang.org/x/net from 0.23.0 to 0.33.0 ([#3712](https://github.com/filebrowser/filebrowser/issues/3712)) ([1194cfe](https://github.com/filebrowser/filebrowser/commit/1194cfe0097a70399c1f06cf0f514b9d70fa463c))
+* **deps:** bump vue-i18n from 9.10.2 to 9.14.2 in /frontend ([#3618](https://github.com/filebrowser/filebrowser/issues/3618)) ([0659594](https://github.com/filebrowser/filebrowser/commit/065959451d3ba12019c6151274aa4e6904cdca99))
+* fix go releaser ([ba797cd](https://github.com/filebrowser/filebrowser/commit/ba797cda3135eddb9b7165dc5ceb932399cb54df))
+* update to node 22 and pnpm ([#3616](https://github.com/filebrowser/filebrowser/issues/3616)) ([d51a343](https://github.com/filebrowser/filebrowser/commit/d51a3438201274a1b826be1b775ca1035ade20c5))
+
+### [2.31.2](https://github.com/filebrowser/filebrowser/compare/v2.31.1...v2.31.2) (2024-10-03)
+
+
+### Bug Fixes
+
+* added whitespace before version ([#3510](https://github.com/filebrowser/filebrowser/issues/3510)) ([2b37e69](https://github.com/filebrowser/filebrowser/commit/2b37e696c9bde4d0c453de236a3555d982346bbb))
+* change location of custom init scripts ([#3493](https://github.com/filebrowser/filebrowser/issues/3493)) ([406d4f7](https://github.com/filebrowser/filebrowser/commit/406d4f78845a1684df7c9c457b208f4dd9b2a930))
+* files list alignment ([#3494](https://github.com/filebrowser/filebrowser/issues/3494)) ([64400ff](https://github.com/filebrowser/filebrowser/commit/64400ffda8b09f66b8662a3c9400235139800a4d))
+* german translation spelling typos ([#3469](https://github.com/filebrowser/filebrowser/issues/3469)) ([1e7c415](https://github.com/filebrowser/filebrowser/commit/1e7c41505fb6a3b9baa1534787492a186e09bcfb))
+
+
+### Build
+
+* **deps-dev:** bump vite from 5.2.7 to 5.4.6 in /frontend ([#3496](https://github.com/filebrowser/filebrowser/issues/3496)) ([ec7b643](https://github.com/filebrowser/filebrowser/commit/ec7b643e8e9499f7ff226ec7f8e63a9df9890352))
+* **deps:** bump rollup from 4.21.3 to 4.22.4 in /frontend ([#3504](https://github.com/filebrowser/filebrowser/issues/3504)) ([03d74ee](https://github.com/filebrowser/filebrowser/commit/03d74ee7582196c09720f8d488056339f06c446c))
+
+### [2.31.1](https://github.com/filebrowser/filebrowser/compare/v2.31.0...v2.31.1) (2024-08-30)
+
+
+### Bug Fixes
+
+* command not found in shell ([#3438](https://github.com/filebrowser/filebrowser/issues/3438)) ([121d9ab](https://github.com/filebrowser/filebrowser/commit/121d9abecdc7d4e923cfc5023519995938a6ccae))
+
+
+### Build
+
+* update to alpine 3.20 ([#3447](https://github.com/filebrowser/filebrowser/issues/3447)) ([7de6bc4](https://github.com/filebrowser/filebrowser/commit/7de6bc4a912b5734dd0df02ed8391e78619e2615))
+
+## [2.31.0](https://github.com/filebrowser/filebrowser/compare/v2.30.0...v2.31.0) (2024-08-29)
+
+
+### Features
+
+* add Czech translation ([#3416](https://github.com/filebrowser/filebrowser/issues/3416)) ([8e67a12](https://github.com/filebrowser/filebrowser/commit/8e67a12f260caefcbe419c2281025b9b15f02bf3))
+* Added epub preview. Resolves [#3375](https://github.com/filebrowser/filebrowser/issues/3375) ([#3376](https://github.com/filebrowser/filebrowser/issues/3376)) ([99a6382](https://github.com/filebrowser/filebrowser/commit/99a6382b320874e94f9bd74708f46dd9a7485d3c))
+* implement markdown file preview in Ace editor ([#3431](https://github.com/filebrowser/filebrowser/issues/3431)) ([b0f4604](https://github.com/filebrowser/filebrowser/commit/b0f4604f44e6a35e07df3000f106f523cd942cfc))
+* support mime type for epub extension ([#3425](https://github.com/filebrowser/filebrowser/issues/3425)) ([f6f7e5f](https://github.com/filebrowser/filebrowser/commit/f6f7e5fea3ff7073ee652008a51cb5445a6f3d5d))
+
+
+### Bug Fixes
+
+* clipboard copy in safari ([#3261](https://github.com/filebrowser/filebrowser/issues/3261)) ([1fccc5d](https://github.com/filebrowser/filebrowser/commit/1fccc5d649add2a56c55e75cf9dec4851e6d7cbf))
+* CSS selectors for listing icons ([#3277](https://github.com/filebrowser/filebrowser/issues/3277)) ([2a90cdf](https://github.com/filebrowser/filebrowser/commit/2a90cdfdaff8655c7cb1167c01994a0978dece8f))
+* fix catalan i18n file ([090272e](https://github.com/filebrowser/filebrowser/commit/090272e3b7c56a940c4aa2d28f860c574aa17d53))
+* fixing an issue where the upload indicator would "jump" around in the UI ([#3354](https://github.com/filebrowser/filebrowser/issues/3354)) ([7be5644](https://github.com/filebrowser/filebrowser/commit/7be564495226bc6846289a56edb8893511036c6e))
+* **frontend:** N files selected hint use i18n ([#3390](https://github.com/filebrowser/filebrowser/issues/3390)) ([10bf3cf](https://github.com/filebrowser/filebrowser/commit/10bf3cffbf8eb7d95fe4e1cc6acf1012329744b9))
+* pdf preview header ([#3274](https://github.com/filebrowser/filebrowser/issues/3274)) ([a838868](https://github.com/filebrowser/filebrowser/commit/a8388689f3019083f263845900f683ddc13884dc))
+* pull down to refresh within editor ([#3378](https://github.com/filebrowser/filebrowser/issues/3378)) ([21783ed](https://github.com/filebrowser/filebrowser/commit/21783ed91a13ad52afdb411e43faf14fb6ef6e42))
+
+
+### Build
+
+* bump go libs ([b596567](https://github.com/filebrowser/filebrowser/commit/b596567c6163d57eaefbf3e30d84cfca65c24cdf))
+* bump go version to 1.23.0 ([364fdaa](https://github.com/filebrowser/filebrowser/commit/364fdaaf0c1eace82ff8637d337cc1b32e5e9972))
+* bump golangci-lint to 1.60.3 ([a6347c8](https://github.com/filebrowser/filebrowser/commit/a6347c88586e584b4565277b0010fa9ff2576b1f))
+* **deps-dev:** bump braces from 3.0.2 to 3.0.3 in /frontend ([#3316](https://github.com/filebrowser/filebrowser/issues/3316)) ([e8589be](https://github.com/filebrowser/filebrowser/commit/e8589be6409a2b29edd44ee2edd3fbf6b2d72724))
+* **deps-dev:** bump ws from 8.16.0 to 8.17.1 in /frontend ([#3321](https://github.com/filebrowser/filebrowser/issues/3321)) ([c3465f9](https://github.com/filebrowser/filebrowser/commit/c3465f99136506d51b813be4f31b289e708da0ce))
+* **deps:** bump golang.org/x/image from 0.15.0 to 0.18.0 ([#3335](https://github.com/filebrowser/filebrowser/issues/3335)) ([30a8ddf](https://github.com/filebrowser/filebrowser/commit/30a8ddf113862e3de2c09547662b7f2af8a30dfe))
+* fix goreleaser file ([056cfa8](https://github.com/filebrowser/filebrowser/commit/056cfa8facdca4c397a6b245028d4c9d3f0ca518))
+
 ## [2.30.0](https://github.com/filebrowser/filebrowser/compare/v2.29.0...v2.30.0) (2024-05-19)
 
 
@@ -55,7 +146,7 @@ All notable changes to this project will be documented in this file. See [standa
 * close editor when click escape key ([#2947](https://github.com/filebrowser/filebrowser/issues/2947)) ([70c8261](https://github.com/filebrowser/filebrowser/commit/70c826133b8578b8712e6db8f762a15a076cd9a9))
 * enable preview in shared folder ([#3055](https://github.com/filebrowser/filebrowser/issues/3055)) ([4c233c3](https://github.com/filebrowser/filebrowser/commit/4c233c3db39ea5a00d6e602ec0ecbddecb590877))
 * focus editor when opened ([#2946](https://github.com/filebrowser/filebrowser/issues/2946)) ([b19710e](https://github.com/filebrowser/filebrowser/commit/b19710efca6daa7af56dc211d0051d500d2eea22))
-* freezing the list in the backgroud while previewing a file ([#3004](https://github.com/filebrowser/filebrowser/issues/3004)) ([e167c3e](https://github.com/filebrowser/filebrowser/commit/e167c3e1efed8b16be45d994a8d443fda1d8cf49))
+* freezing the list in the background while previewing a file ([#3004](https://github.com/filebrowser/filebrowser/issues/3004)) ([e167c3e](https://github.com/filebrowser/filebrowser/commit/e167c3e1efed8b16be45d994a8d443fda1d8cf49))
 * prompt to confirm discard editor changes ([#2948](https://github.com/filebrowser/filebrowser/issues/2948)) ([fb1a09c](https://github.com/filebrowser/filebrowser/commit/fb1a09c7c172b913c12b30975ca545e505df0c05))
 * select multiple files with ctrl even with singleClick option ([#2953](https://github.com/filebrowser/filebrowser/issues/2953)) ([d49c3df](https://github.com/filebrowser/filebrowser/commit/d49c3dfacfc0ff07e620b3ad2700e64927b06235))
 

@@ -273,7 +273,7 @@ const formattedChunkSize = computed({
     }
 
     // Set a new timeout to apply the format after a short delay
-    debounceTimeout.value = setTimeout(() => {
+    debounceTimeout.value = window.setTimeout(() => {
       if (settings.value) settings.value.tus.chunkSize = parseBytes(value);
     }, 1500);
   },
@@ -282,11 +282,11 @@ const formattedChunkSize = computed({
 // Define funcs
 const capitalize = (name: string, where: string | RegExp = "_") => {
   if (where === "caps") where = /(?=[A-Z])/;
-  let splitted = name.split(where);
+  const split = name.split(where);
   name = "";
 
-  for (let i = 0; i < splitted.length; i++) {
-    name += splitted[i].charAt(0).toUpperCase() + splitted[i].slice(1) + " ";
+  for (let i = 0; i < split.length; i++) {
+    name += split[i].charAt(0).toUpperCase() + split[i].slice(1) + " ";
   }
 
   return name.slice(0, -1);
@@ -294,7 +294,7 @@ const capitalize = (name: string, where: string | RegExp = "_") => {
 
 const save = async () => {
   if (settings.value === null) return false;
-  let newSettings: ISettings = {
+  const newSettings: ISettings = {
     ...settings.value,
     shell:
       settings.value?.shell
@@ -376,7 +376,7 @@ onMounted(async () => {
   try {
     layoutStore.loading = true;
     const original: ISettings = await api.get();
-    let newSettings: ISettings = { ...original, commands: {} };
+    const newSettings: ISettings = { ...original, commands: {} };
 
     const keys = Object.keys(original.commands) as Array<keyof SettingsCommand>;
     for (const key of keys) {
