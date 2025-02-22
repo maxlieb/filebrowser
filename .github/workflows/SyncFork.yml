@@ -16,6 +16,6 @@ jobs:
         run: |
           git remote add upstream https://github.com/filebrowser/filebrowser.git
           git fetch upstream
-          git checkout main
-          git merge upstream/main
-          git push origin main
+          git checkout master
+          git merge upstream/master
+          git push origin master
