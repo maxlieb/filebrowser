@@ -13,6 +13,8 @@ customaizations include:
 
 ** Uses the ctx utility to impelent the feature of stoppeing generation, so probably not compatible with windows.
 
+** 22-Feb-25 - from now on this fork should automatically be kept up-to date thanks to github actions.
+
 Modified files are:
 
 /http/preview.go
