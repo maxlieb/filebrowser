@@ -17,7 +17,7 @@ Modified files are:
 
 /http/preview.go
 
-/src/components/files/ListingItem.vue
+/frontend/src/components/files/ListingItem.vue
 
 ChadGPT havevily used in generating the code.
 
