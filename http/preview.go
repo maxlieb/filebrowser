@@ -112,9 +112,26 @@ func handleVideoPreview(
 		defer func() { <-jobTokens }()
 
 		// Execute ffmpeg to generate the thumbnail with lower priority
-		cmd := exec.CommandContext(ctx, "ffmpeg", "-y", "-hwaccel", "qsv", "-i", path, "-vf", "thumbnail,
-		crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128", "-quality", "40", "-frames:v", "1", "-c:v", 
-		"webp", "-f", "image2pipe", "-")
+		cmd := exec.CommandContext(
+			ctx,
+			"ffmpeg",
+			"-y",
+			"-hwaccel",
+			"qsv",
+			"-i",
+			path,
+			"-vf",
+			"thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128",
+			"-quality",
+			"40",
+			"-frames:v",
+			"1",
+			"-c:v",
+			"webp",
+			"-f",
+			"image2pipe",
+			"-",
+		)
 
 		// Create a pipe to read the output
 		stdout, err := cmd.StdoutPipe()
