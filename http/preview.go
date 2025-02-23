@@ -12,10 +12,11 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/filebrowser/filebrowser/v2/files"
-	"github.com/filebrowser/filebrowser/v2/img"
 	"github.com/gorilla/mux"
 	"github.com/spf13/afero"
+
+	"github.com/filebrowser/filebrowser/v2/files"
+	"github.com/filebrowser/filebrowser/v2/img"
 )
 
 type PreviewSize int
