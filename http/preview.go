@@ -95,7 +95,7 @@ func handleVideoPreview(
     	
 		// Thumbnail exists, serve it
 		http.ServeFile(w, r, thumbPath)
-    	//fmt.Printf("loaded from file: %v", thumbPath)
+    	// fmt.Printf("loaded from file: %v", thumbPath)
 		return 0, nil
 	}
 
@@ -112,7 +112,9 @@ func handleVideoPreview(
 		defer func() { <-jobTokens }()
 
 		// Execute ffmpeg to generate the thumbnail with lower priority
-		cmd := exec.CommandContext(ctx, "ffmpeg", "-y", "-hwaccel", "qsv", "-i", path, "-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128", "-quality", "40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-")
+		cmd := exec.CommandContext(ctx, "ffmpeg", "-y", "-hwaccel", "qsv", "-i", path, "-vf", "thumbnail,
+		crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128", "-quality", "40", "-frames:v", "1", "-c:v", 
+		"webp", "-f", "image2pipe", "-")
 
 		// Create a pipe to read the output
 		stdout, err := cmd.StdoutPipe()
@@ -159,7 +161,7 @@ func handleVideoPreview(
 		if err := os.MkdirAll(thumbDir, os.ModePerm); err != nil {
 			return http.StatusInternalServerError, err
 		}
-		if err := os.WriteFile(thumbPath, resizedImage, 0644); err != nil {
+		if err := os.WriteFile(thumbPath, resizedImage, 0600); err != nil {
 			return http.StatusInternalServerError, err
 		}
 
@@ -263,8 +265,8 @@ func createPreview(ctx context.Context, imgSvc ImgService, fileCache FileCache,
 	return buf.Bytes(), nil
 }
 
-//func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
-//	return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
+// func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
+// return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
 //}
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
 	const maxLength = 100 // maximum length for the filename
