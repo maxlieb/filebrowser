@@ -33,6 +33,7 @@ type FileCache interface {
 var (
     jobTokens = make(chan struct{}, 4) // Limit to 4 concurrent ffmpeg jobs
 )
+const privateFilePerm os.FileMode = 0600
 
 func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -67,7 +68,7 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		case "image":
 			return handleImagePreview(ctx, w, r, imgSvc, fileCache, file, previewSize, enableThumbnails, resizePreview)
 		case "video":
-			return handleVideoPreview(ctx, w, r, imgSvc, fileCache, file, previewSize, enableThumbnails, resizePreview)
+			return handleVideoPreview(ctx, w, r, fileCache, file, previewSize, resizePreview)
 		default:
 			return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
 		}
@@ -80,11 +81,10 @@ func handleVideoPreview(
 	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
-	imgSvc ImgService,
 	fileCache FileCache,
 	file *files.FileInfo,
 	previewSize PreviewSize,
-	enableThumbnails, resizePreview bool,
+	resizePreview bool,
 ) (int, error) {
 	path := afero.FullBaseFsPath(file.Fs.(*afero.BasePathFs), file.Path)
 	thumbDir := filepath.Join(filepath.Dir(path), ".thumbnails")
@@ -92,10 +92,8 @@ func handleVideoPreview(
 
 	// Check if the thumbnail file exists in .thumbnails
 	if _, err := os.Stat(thumbPath); err == nil {
-    	
 		// Thumbnail exists, serve it
 		http.ServeFile(w, r, thumbPath)
-    	// fmt.Printf("loaded from file: %v", thumbPath)
 		return 0, nil
 	}
 
@@ -156,7 +154,7 @@ func handleVideoPreview(
 
 		select {
 		case <-ctx.Done():
-			// Context cancelled, kill the process
+			// Context canceled, kill the process
 			if err := cmd.Process.Kill(); err != nil {
 				fmt.Printf("failed to kill process: %v", err)
 			}
@@ -178,7 +176,7 @@ func handleVideoPreview(
 		if err := os.MkdirAll(thumbDir, os.ModePerm); err != nil {
 			return http.StatusInternalServerError, err
 		}
-		if err := os.WriteFile(thumbPath, resizedImage, 0600); err != nil {
+		if err := os.WriteFile(thumbPath, resizedImage, privateFilePerm); err != nil {
 			return http.StatusInternalServerError, err
 		}
 
