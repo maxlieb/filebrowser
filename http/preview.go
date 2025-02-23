@@ -31,11 +31,12 @@ type FileCache interface {
 	Delete(ctx context.Context, key string) error
 }
 
-var (
-	jobTokens = make(chan struct{}, 4) // Limit to 4 concurrent ffmpeg jobs
-)
-
 const privateFilePerm os.FileMode = 0600
+const ffmpegJobLimit = 4
+
+var (
+	jobTokens = make(chan struct{}, ffmpegJobLimit) // Limit to 4 concurrent ffmpeg jobs
+)
 
 func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
