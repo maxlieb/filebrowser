@@ -11,10 +11,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"github.com/spf13/afero"
-	"github.com/gorilla/mux"
+
 	"github.com/filebrowser/filebrowser/v2/files"
 	"github.com/filebrowser/filebrowser/v2/img"
+	"github.com/gorilla/mux"
+	"github.com/spf13/afero"
 )
 
 type PreviewSize int
@@ -31,8 +32,9 @@ type FileCache interface {
 }
 
 var (
-    jobTokens = make(chan struct{}, 4) // Limit to 4 concurrent ffmpeg jobs
+	jobTokens = make(chan struct{}, 4) // Limit to 4 concurrent ffmpeg jobs
 )
+
 const privateFilePerm os.FileMode = 0600
 
 func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool) handleFunc {
@@ -68,14 +70,12 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		case "image":
 			return handleImagePreview(ctx, w, r, imgSvc, fileCache, file, previewSize, enableThumbnails, resizePreview)
 		case "video":
-			return handleVideoPreview(ctx, w, r, fileCache, file, previewSize, resizePreview)
+			return handleVideoPreview(ctx, w, r, fileCache, file, previewSize)
 		default:
 			return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
 		}
 	})
 }
-
-
 
 func handleVideoPreview(
 	ctx context.Context,
@@ -84,7 +84,6 @@ func handleVideoPreview(
 	fileCache FileCache,
 	file *files.FileInfo,
 	previewSize PreviewSize,
-	resizePreview bool,
 ) (int, error) {
 	path := afero.FullBaseFsPath(file.Fs.(*afero.BasePathFs), file.Path)
 	thumbDir := filepath.Join(filepath.Dir(path), ".thumbnails")
@@ -171,8 +170,8 @@ func handleVideoPreview(
 		}
 
 		resizedImage = buf.Bytes()
-    
-    	// Save the generated thumbnail to the .thumbnails directory
+
+		// Save the generated thumbnail to the .thumbnails directory
 		if err := os.MkdirAll(thumbDir, os.ModePerm); err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -193,7 +192,6 @@ func handleVideoPreview(
 	http.ServeContent(w, r, "", file.ModTime, bytes.NewReader(resizedImage))
 	return 0, nil
 }
-
 
 func handleImagePreview(
 	ctx context.Context,
@@ -236,7 +234,6 @@ func handleImagePreview(
 
 	return 0, nil
 }
-
 
 func createPreview(ctx context.Context, imgSvc ImgService, fileCache FileCache,
 	file *files.FileInfo, previewSize PreviewSize) ([]byte, error) {
@@ -282,7 +279,7 @@ func createPreview(ctx context.Context, imgSvc ImgService, fileCache FileCache,
 
 // func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
 // return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
-//}
+// }
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
 	const maxLength = 100 // maximum length for the filename
 	realPath := f.RealPath()
