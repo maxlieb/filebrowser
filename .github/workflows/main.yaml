@@ -117,8 +117,10 @@ jobs:
 
       - name: Build backend binaries with frontend
         env:
-          GOOS: linux darwin windows
-          GOARCH: amd64 arm64
+          #GOOS: linux darwin windows
+          #GOARCH: amd64 arm64
+          GOOS: linux
+          GOARCH: amd64
         run: |
           mkdir -p dist
           cp -r frontend/dist public
