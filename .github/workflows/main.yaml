@@ -127,8 +127,8 @@ jobs:
           for os in $GOOS; do
             for arch in $GOARCH; do
               echo "Building for $os/$arch..."
-              GOOS=$os GOARCH=$arch go build -o dist/myapp_${os}_${arch}
-              tar -czvf dist/myapp_${os}_${arch}.tar.gz -C dist myapp_${os}_${arch}
+              GOOS=$os GOARCH=$arch go build -o dist/filebrowser_${os}_${arch}
+              tar -czvf dist/filebrowser_${os}_${arch}.tar.gz -C dist filebrowser_${os}_${arch}
             done
           done
           rm -rf public
