@@ -137,9 +137,18 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all tags and branches
+      - name: Fetch upstream tags
+        run: |
+          git remote add upstream https://github.com/filebrowser/filebrowser.git
+          git fetch upstream --tags
       - name: Generate version number
         id: version
-        run: echo "version=v$(date +'%Y.%m.%d.%H%M%S')" >> $GITHUB_OUTPUT
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 $(git rev-list --tags --max-count=1))
+          NEW_TAG="${LATEST_TAG}.$(date +'%Y%m%d%H%M%S')"
+          echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
       - name: Create and push tag
         run: |
           git config user.name github-actions
