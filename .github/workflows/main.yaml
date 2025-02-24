@@ -96,7 +96,7 @@ jobs:
 
   build-backend:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [build-frontend]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
