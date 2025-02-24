@@ -60,10 +60,16 @@ jobs:
         with:
           go-version: 1.23.0
       - run: make test-backend
+  
+  test:
+    runs-on: ubuntu-latest
+    needs: [test-frontend, test-backend]
+    steps:
+      - run: echo "done"
 
   build-frontend:
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: [lint, test]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
