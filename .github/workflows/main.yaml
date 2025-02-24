@@ -141,7 +141,7 @@ jobs:
         id: version
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
-          NEW_TAG="${LATEST_TAG}.$(date +'%Y%m%d%H%M%S')"
+          NEW_TAG="${LATEST_TAG}-$(date +'%Y.%m.%d-%H.%M.%S')"
           echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
       - name: Create and push tag
         run: |
