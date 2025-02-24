@@ -59,47 +59,137 @@ jobs:
         with:
           go-version: 1.23.0
       - run: make test-backend
-  test:
-    runs-on: ubuntu-latest
-    needs: [test-frontend, test-backend]
-    steps:
-      - run: echo "done"
 
-  # release
-  release:
+  build-frontend:
     runs-on: ubuntu-latest
-    needs: [lint, test]
-    if: startsWith(github.event.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 1.23.0
+
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: "frontend/package.json"
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22.x"
           cache: "pnpm"
           cache-dependency-path: "frontend/pnpm-lock.yaml"
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          pnpm install
+
       - name: Build frontend
-        run: make build-frontend
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        run: |
+          cd frontend
+          pnpm run build
+
+      - name: Archive frontend build
+        uses: actions/upload-artifact@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+          name: frontend-dist
+          path: frontend/dist
+
+  build-backend:
+    runs-on: ubuntu-latest
+    needs: [build-frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
         with:
-          version: latest
-          args: release --clean
+          go-version: 1.23.0
+
+      - name: Install backend dependencies
+        run: |
+          go mod download
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Build backend binaries with frontend
+        env:
+          GOOS: linux darwin windows
+          GOARCH: amd64 arm64
+        run: |
+          mkdir -p dist
+          cp -r frontend/dist public
+          for os in $GOOS; do
+            for arch in $GOARCH; do
+              echo "Building for $os/$arch..."
+              GOOS=$os GOARCH=$arch go build -o dist/myapp_${os}_${arch}
+              tar -czvf dist/myapp_${os}_${arch}.tar.gz -C dist myapp_${os}_${arch}
+            done
+          done
+          rm -rf public
+
+      - name: Archive backend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: dist/*.tar.gz
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-backend]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend-dist
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            backend-dist/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+#  test:
+#    runs-on: ubuntu-latest
+#    needs: [test-frontend, test-backend]
+#    steps:
+#      - run: echo "done"
+#
+#  # release
+#  release:
+#    runs-on: ubuntu-latest
+#    needs: [lint, test]
+#    if: startsWith(github.event.ref, 'refs/tags/v')
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#      - uses: actions/setup-go@v5
+#        with:
+#          go-version: 1.23.0
+#      - uses: pnpm/action-setup@v4
+#        with:
+#          package_json_file: "frontend/package.json"
+#      - uses: actions/setup-node@v4
+#        with:
+#          node-version: "22.x"
+#          cache: "pnpm"
+#          cache-dependency-path: "frontend/pnpm-lock.yaml"
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v1
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v1
+#      - name: Build frontend
+#        run: make build-frontend
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#      - name: Run GoReleaser
+#        uses: goreleaser/goreleaser-action@v2
+#        with:
+#          version: latest
+#          args: release --clean
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
