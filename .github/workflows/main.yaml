@@ -146,12 +146,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          if git ls-remote --exit-code --tags origin refs/tags/${{ steps.get_tag.outputs.tag }} >/dev/null 2>&1; then
-            echo "Tag ${{ steps.get_tag.outputs.tag }} exists. Deleting tag and release..."
-            git push --delete origin ${{ steps.get_tag.outputs.tag }}
-            curl -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GH_PAT }}" https://api.github.com/repos/maxlieb/filebrowser/releases/tags/${{ steps.get_tag.outputs.tag }}
+          TAG="${{ steps.get_tag.outputs.tag }}"
+          if git ls-remote --exit-code --tags origin refs/tags/$TAG >/dev/null 2>&1; then
+            echo "Tag $TAG exists. Deleting tag and release..."
+            # Get release ID by tag
+            RELEASE_ID=$(curl -s https://api.github.com/repos/maxlieb/filebrowser/releases/tags/$TAG | jq -r .id)
+            echo "Release ID: $RELEASE_ID"
+            # Delete release by ID
+            curl -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GH_PAT }}" "https://api.github.com/repos/maxlieb/filebrowser/releases/$RELEASE_ID"
+            # Delete tag
+            git push --delete origin $TAG
           else
-            echo "Tag ${{ steps.get_tag.outputs.tag }} does not exist."
+            echo "Tag $TAG does not exist."
           fi
       - name: Create and push tag
         run: |
@@ -170,3 +176,4 @@ jobs:
           tag_name: ${{ steps.get_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
