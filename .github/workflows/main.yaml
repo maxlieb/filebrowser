@@ -142,25 +142,16 @@ jobs:
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-      - name: Delete all releases and tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Delete matching tag if it exists
         run: |
-          # Delete all releases
-          RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            "https://api.github.com/repos/maxlieb/filebrowser/releases")
-          echo "$RELEASES" | jq -r '.[].id' | while read -r id; do
-            echo "Deleting release with ID: $id"
-            curl -X DELETE -H "Authorization: token ${{ secrets.GH_PAT }}" \
-              "https://api.github.com/repos/maxlieb/filebrowser/releases/$id"
-          done
-  
-          # Delete all tags
-          git fetch --tags
-          git tag | while read -r tag; do
-            echo "Deleting tag: $tag"
-            git push --delete origin "$tag"
-          done
+          TAG="${{ steps.get_tag.outputs.tag }}"
+          if git ls-remote --exit-code --tags origin refs/tags/$TAG >/dev/null 2>&1; then
+            echo "Tag $TAG exists. Deleting tag..."
+            git push --delete origin $TAG
+            echo "Tag deleted."
+          else
+            echo "Tag $TAG does not exist."
+          fi
       - name: Create and push tag
         run: |
           git config user.name github-actions
@@ -178,4 +169,4 @@ jobs:
           tag_name: ${{ steps.get_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
+  
