@@ -112,16 +112,16 @@ jobs:
           path: frontend/dist
       - name: Build backend binaries with frontend
         env:
-          GOOS: linux
-          GOARCH: amd64
+          GOOS: linux darwin windows
+          GOARCH: amd64 arm64 armv7
         run: |
           mkdir -p dist
           cp -r frontend/dist public
           for os in $GOOS; do
             for arch in $GOARCH; do
               echo "Building for $os/$arch..."
-              GOOS=$os GOARCH=$arch go build -o dist/filebrowser_${os}_${arch}
-              tar -czvf dist/filebrowser_${os}_${arch}.tar.gz -C dist filebrowser_${os}_${arch}
+              GOOS=$os GOARCH=$arch go build -o dist/${os}_${arch}-filebrowser
+              tar -czvf dist/${os}_${arch}-filebrowser.tar.gz -C dist ${os}_${arch}-filebrowser
             done
           done
           rm -rf public
