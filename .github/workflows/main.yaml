@@ -111,17 +111,22 @@ jobs:
           name: frontend-dist
           path: frontend/dist
       - name: Build backend binaries with frontend
-        env:
-          GOOS: linux darwin windows
-          GOARCH: amd64 arm64
         run: |
           mkdir -p dist
           cp -r frontend/dist public
-          for os in $GOOS; do
-            for arch in $GOARCH; do
+          for os in linux darwin windows; do
+            for arch in amd64 arm64; do
               echo "Building for $os/$arch..."
-              GOOS=$os GOARCH=$arch go build -o dist/${os}_${arch}-filebrowser
-              tar -czvf dist/${os}_${arch}-filebrowser.tar.gz -C dist ${os}_${arch}-filebrowser
+              output="dist/${os}_${arch}-filebrowser"
+              if [ "$os" == "windows" ]; then
+                output="${output}.exe"
+              fi
+              GOOS=$os GOARCH=$arch go build -o "$output"
+              if [ "$os" == "linux" ]; then
+                tar -czvf "${output}.tar.gz" -C dist "${os}_${arch}-filebrowser"
+              else
+                (cd dist && zip -r "${os}_${arch}-filebrowser.zip" "${os}_${arch}-filebrowser"*)
+              fi
             done
           done
           rm -rf public
@@ -129,7 +134,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-dist
-          path: dist/*.tar.gz
+          path: dist/*.{tar.gz,zip}
 
   release:
     runs-on: ubuntu-latest
