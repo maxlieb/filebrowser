@@ -142,7 +142,7 @@ jobs:
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-      - name: Delete existing tag if it exists
+      - name: Delete matching tag if it exists
         run: |
           TAG="${{ steps.get_tag.outputs.tag }}"
           if git ls-remote --exit-code --tags origin refs/tags/$TAG >/dev/null 2>&1; then
@@ -162,23 +162,11 @@ jobs:
         with:
           name: backend-dist
           path: backend-dist
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
         with:
+          files: backend-dist/*.tar.gz
           tag_name: ${{ steps.get_tag.outputs.tag }}
-          release_name: Release ${{ steps.get_tag.outputs.tag }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./backend-dist/filebrowser_linux_amd64.tar.gz
-          asset_name: filebrowser_linux_amd64.tar.gz
-          asset_content_type: application/gzip
-
+  
