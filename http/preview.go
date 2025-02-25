@@ -91,9 +91,8 @@ func handleVideoPreview(
 	thumbDir := filepath.Join(filepath.Dir(path), ".thumbnails")
 	thumbPath := filepath.Join(thumbDir, previewCacheKey(file, previewSize)+".webp")
 
-	// Check if the thumbnail file exists in .thumbnails
+	// Check if the thumbnail file exists
 	if _, err := os.Stat(thumbPath); err == nil {
-		// Thumbnail exists, serve it
 		http.ServeFile(w, r, thumbPath)
 		return 0, nil
 	}
@@ -104,61 +103,33 @@ func handleVideoPreview(
 		return errToStatus(err), err
 	}
 	if !ok {
-		// Acquire a token before starting ffmpeg
 		jobTokens <- struct{}{}
-
-		// Ensure the token is released after ffmpeg finishes
 		defer func() { <-jobTokens }()
 
-		// Execute ffmpeg to generate the thumbnail with lower priority
-		cmd := exec.CommandContext(
-			ctx, "ffmpeg", "-y", "-hwaccel", "vaapi", "-i", path,
-			"-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128", "-quality",
-			"40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-",
-		)
+		// Try ffmpeg with hardware acceleration first
+		ffmpegArgs := []string{
+			"-y", "-hwaccel", "vaapi", "-i", path,
+			"-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128",
+			"-quality", "40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-",
+		}
 
-		// Create a pipe to read the output
-		stdout, err := cmd.StdoutPipe()
+		resizedImage, err = runFFmpeg(ctx, ffmpegArgs)
 		if err != nil {
-			return errToStatus(err), err
-		}
+			fmt.Printf("Hardware acceleration failed: %v, retrying without it...\n", err)
 
-		// Start the command
-		if err := cmd.Start(); err != nil {
-			return errToStatus(err), err
-		}
-
-		// Create a buffer to hold the output
-		var buf bytes.Buffer
-
-		// Create a channel to signal when the command is done
-		done := make(chan error)
-		go func() {
-			_, err := io.Copy(&buf, stdout)
-			done <- err
-		}()
-
-		select {
-		case <-ctx.Done():
-			// Context canceled, kill the process
-			if err := cmd.Process.Kill(); err != nil {
-				fmt.Printf("failed to kill process: %v", err)
+			// Retry without hardware acceleration
+			ffmpegArgs = []string{
+				"-y", "-i", path,
+				"-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128",
+				"-quality", "40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-",
 			}
-			<-done // Wait for the goroutine to finish
-			return http.StatusRequestTimeout, ctx.Err()
-		case err := <-done:
-			// Command finished
+			resizedImage, err = runFFmpeg(ctx, ffmpegArgs)
 			if err != nil {
 				return errToStatus(err), err
 			}
-			if err := cmd.Wait(); err != nil {
-				return errToStatus(err), err
-			}
 		}
 
-		resizedImage = buf.Bytes()
-
-		// Save the generated thumbnail to the .thumbnails directory
+		// Save the generated thumbnail
 		if err := os.MkdirAll(thumbDir, os.ModePerm); err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -167,9 +138,8 @@ func handleVideoPreview(
 		}
 
 		go func() {
-			cacheKey := previewCacheKey(file, previewSize)
 			if err := fileCache.Store(context.Background(), cacheKey, resizedImage); err != nil {
-				fmt.Printf("failed to cache resized image: %v", err)
+				fmt.Printf("Failed to cache resized image: %v\n", err)
 			}
 		}()
 	}
@@ -178,6 +148,42 @@ func handleVideoPreview(
 	w.Header().Set("Content-Type", "image/webp")
 	http.ServeContent(w, r, "", file.ModTime, bytes.NewReader(resizedImage))
 	return 0, nil
+}
+
+func runFFmpeg(ctx context.Context, args []string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	done := make(chan error)
+	go func() {
+		_, err := io.Copy(&buf, stdout)
+		done <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		_ = cmd.Process.Kill()
+		<-done
+		return nil, ctx.Err()
+	case err := <-done:
+		if err != nil {
+			return nil, err
+		}
+		if err := cmd.Wait(); err != nil {
+			return nil, err
+		}
+	}
+
+	return buf.Bytes(), nil
 }
 
 func handleImagePreview(
