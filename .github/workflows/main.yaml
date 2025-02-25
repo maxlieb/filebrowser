@@ -142,11 +142,13 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
+      
       - name: Get latest upstream tag
         id: get_tag
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+      
       - name: Delete matching tag if it exists
         run: |
           TAG="${{ steps.get_tag.outputs.tag }}"
@@ -157,21 +159,39 @@ jobs:
           else
             echo "Tag $TAG does not exist."
           fi
+      
       - name: Create and push tag
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git tag ${{ steps.get_tag.outputs.tag }}
           git push origin ${{ steps.get_tag.outputs.tag }}
+      
+      - name: List available artifacts
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.runId,
+            });
+            console.log(artifacts.data);
+  
       - uses: actions/download-artifact@v4
         with:
           name: backend-dist
           path: backend-dist
+  
+      - name: List downloaded files
+        run: ls -R backend-dist
+  
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
-          files: backend-dist/*.tar.gz
+          files: backend-dist/*
           tag_name: ${{ steps.get_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
   
