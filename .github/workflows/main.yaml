@@ -151,15 +151,24 @@ jobs:
           
           # List all releases
           RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            "https://api.github.com/repos/maxlieb/filebrowser/releases")
+            "https://api.github.com/repos/maxlieb/filebrowser/releases?per_page=100")
           
           # Extract and delete all release IDs matching the tag
-          echo "$RELEASES" | jq -r ".[] | select(.tag_name == \"$TAG\") | .id" | while read -r id; do
-            if [ ! -z "$id" ]; then
-              echo "Deleting release with ID: $id"
-              curl -X DELETE -H "Authorization: token ${{ secrets.GH_PAT }}" \
-                "https://api.github.com/repos/maxlieb/filebrowser/releases/$id"
+          while true; do
+            echo "$RELEASES" | jq -r ".[] | select(.tag_name == \"$TAG\") | .id" | while read -r id; do
+              if [ ! -z "$id" ]; then
+                echo "Deleting release with ID: $id"
+                curl -X DELETE -H "Authorization: token ${{ secrets.GH_PAT }}" \
+                  "https://api.github.com/repos/maxlieb/filebrowser/releases/$id"
+              fi
+            done
+            
+            # Check if there are more pages
+            NEXT_PAGE=$(echo "$RELEASES" | jq -r '.next')
+            if [ -z "$NEXT_PAGE" ]; then
+              break
             fi
+            RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" "$NEXT_PAGE")
           done
           
           # Delete the tag if it exists
@@ -187,4 +196,3 @@ jobs:
           tag_name: ${{ steps.get_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-  
