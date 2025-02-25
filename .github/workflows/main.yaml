@@ -153,8 +153,9 @@ jobs:
           RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             "https://api.github.com/repos/maxlieb/filebrowser/releases?per_page=100")
           
-          # Extract and delete all release IDs matching the tag
-          while true; do
+          # Check if the RELEASES is a valid JSON array
+          if echo "$RELEASES" | jq -e 'try (.[] | .id) catch false' >/dev/null 2>&1; then
+            # Extract and delete all release IDs matching the tag
             echo "$RELEASES" | jq -r ".[] | select(.tag_name == \"$TAG\") | .id" | while read -r id; do
               if [ ! -z "$id" ]; then
                 echo "Deleting release with ID: $id"
@@ -162,14 +163,9 @@ jobs:
                   "https://api.github.com/repos/maxlieb/filebrowser/releases/$id"
               fi
             done
-            
-            # Check if there are more pages
-            NEXT_PAGE=$(echo "$RELEASES" | jq -r '.next')
-            if [ -z "$NEXT_PAGE" ]; then
-              break
-            fi
-            RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" "$NEXT_PAGE")
-          done
+          else
+            echo "Error: Failed to retrieve release information from API."
+          fi
           
           # Delete the tag if it exists
           if git ls-remote --exit-code --tags origin refs/tags/$TAG >/dev/null 2>&1; then
