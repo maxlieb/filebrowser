@@ -6,12 +6,12 @@ and further customized.
 
 customaizations include:
 * Generation into a .thumbnails subfolder with files in addition to cache mechanism.
-* Intel hardware QSV acceleration.
+* <s>Intel hardware QSV acceleration.</s> changed to vaapi for cross-paltform compatibilty.
 * Thumbnails will stop generating when leaving a folder to allow generating for the next folder before finishing the last one.
 
-** Obvoisly requires ffmpeg, an intel card + drivers.
+** Obvoisly requires ffmpeg, <s>an intel card + drivers.</s>
 
-** Uses the ctx utility to impelent the feature of stoppeing generation, so probably not compatible with windows.
+** Uses the ctx utility to impelent the feature of stoppeing generation<s>, so probably not compatible with windows.</s>
 
 ** 22-Feb-25 - from now on this fork should automatically be kept up-to date thanks to github actions.
 
