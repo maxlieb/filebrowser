@@ -1,3 +1,4 @@
+//go:generate go-enum --sql --marshal --names --file $GOFILE
 package http
 
 import (
@@ -43,8 +44,8 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		if !d.user.Perm.Download {
 			return http.StatusAccepted, nil
 		}
-
 		vars := mux.Vars(r)
+
 		previewSize, err := ParsePreviewSize(vars["size"])
 		if err != nil {
 			return http.StatusBadRequest, err
@@ -63,8 +64,10 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		}
 
 		setContentDisposition(w, r, file)
+
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
+
 		switch file.Type {
 		case "image":
 			return handleImagePreview(ctx, w, r, imgSvc, fileCache, file, previewSize, enableThumbnails, resizePreview)
@@ -88,7 +91,9 @@ func handleVideoPreview(
 	thumbDir := filepath.Join(filepath.Dir(path), ".thumbnails")
 	thumbPath := filepath.Join(thumbDir, previewCacheKey(file, previewSize)+".webp")
 
+	// Check if the thumbnail file exists in .thumbnails
 	if _, err := os.Stat(thumbPath); err == nil {
+		// Thumbnail exists, serve it
 		http.ServeFile(w, r, thumbPath)
 		return 0, nil
 	}
@@ -98,39 +103,76 @@ func handleVideoPreview(
 	if err != nil {
 		return errToStatus(err), err
 	}
+	if !ok {
+		// Acquire a token before starting ffmpeg
+		jobTokens <- struct{}{}
 
-	if ok {
-		w.Header().Set("Cache-Control", "private")
-		w.Header().Set("Content-Type", "image/webp")
-		http.ServeContent(w, r, "", file.ModTime, bytes.NewReader(resizedImage))
-		return 0, nil
-	}
+		// Ensure the token is released after ffmpeg finishes
+		defer func() { <-jobTokens }()
 
-	jobTokens <- struct{}{}
-	defer func() { <-jobTokens }()
+		// Execute ffmpeg to generate the thumbnail with lower priority
+		cmd := exec.CommandContext(
+			ctx, "ffmpeg", "-y", "-hwaccel", "vaapi", "-i", path,
+			"-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128", "-quality",
+			"40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-",
+		)
 
-	resizedImage, err = createVideoThumb(ctx, path)
-	if err != nil {
-		fmt.Printf("VA-API transcoding failed, falling back to CPU: %v\n", err)
-		resizedImage, err = createVideoThumbCPU(ctx, path)
+		// Create a pipe to read the output
+		stdout, err := cmd.StdoutPipe()
 		if err != nil {
 			return errToStatus(err), err
 		}
-	}
 
-	if err := os.MkdirAll(thumbDir, os.ModePerm); err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	if err := os.WriteFile(thumbPath, resizedImage, privateFilePerm); err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	go func() {
-		if err := fileCache.Store(context.Background(), cacheKey, resizedImage); err != nil {
-			fmt.Printf("failed to cache resized image: %v", err)
+		// Start the command
+		if err := cmd.Start(); err != nil {
+			return errToStatus(err), err
 		}
-	}()
+
+		// Create a buffer to hold the output
+		var buf bytes.Buffer
+
+		// Create a channel to signal when the command is done
+		done := make(chan error)
+		go func() {
+			_, err := io.Copy(&buf, stdout)
+			done <- err
+		}()
+
+		select {
+		case <-ctx.Done():
+			// Context canceled, kill the process
+			if err := cmd.Process.Kill(); err != nil {
+				fmt.Printf("failed to kill process: %v", err)
+			}
+			<-done // Wait for the goroutine to finish
+			return http.StatusRequestTimeout, ctx.Err()
+		case err := <-done:
+			// Command finished
+			if err != nil {
+				return errToStatus(err), err
+			}
+			if err := cmd.Wait(); err != nil {
+				return errToStatus(err), err
+			}
+		}
+
+		resizedImage = buf.Bytes()
+
+		// Save the generated thumbnail to the .thumbnails directory
+		if err := os.MkdirAll(thumbDir, os.ModePerm); err != nil {
+			return http.StatusInternalServerError, err
+		}
+		if err := os.WriteFile(thumbPath, resizedImage, privateFilePerm); err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		go func() {
+			cacheKey := previewCacheKey(file, previewSize)
+			if err := fileCache.Store(context.Background(), cacheKey, resizedImage); err != nil {
+				fmt.Printf("failed to cache resized image: %v", err)
+			}
+		}()
+	}
 
 	w.Header().Set("Cache-Control", "private")
 	w.Header().Set("Content-Type", "image/webp")
@@ -154,10 +196,10 @@ func handleImagePreview(
 	}
 
 	format, err := imgSvc.FormatFromExtension(file.Extension)
+	// Unsupported extensions directly return the raw data
 	if errors.Is(err, img.ErrUnsupportedFormat) || format == img.FormatGif {
 		return rawFileHandler(w, r, file)
 	}
-
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -167,7 +209,6 @@ func handleImagePreview(
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	if !ok {
 		resizedImage, err = createPreview(ctx, imgSvc, fileCache, file, previewSize)
 		if err != nil {
@@ -177,6 +218,7 @@ func handleImagePreview(
 
 	w.Header().Set("Cache-Control", "private")
 	http.ServeContent(w, r, file.Name, file.ModTime, bytes.NewReader(resizedImage))
+
 	return 0, nil
 }
 
@@ -213,58 +255,28 @@ func createPreview(ctx context.Context, imgSvc ImgService, fileCache FileCache,
 	}
 
 	go func() {
-		if err := fileCache.Store(context.Background(), previewCacheKey(file, previewSize), buf.Bytes()); err != nil {
+		cacheKey := previewCacheKey(file, previewSize)
+		if err := fileCache.Store(context.Background(), cacheKey, buf.Bytes()); err != nil {
 			fmt.Printf("failed to cache resized image: %v", err)
 		}
 	}()
+
 	return buf.Bytes(), nil
 }
 
+// func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
+// return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
+// }
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
-	const maxLength = 100
+	const maxLength = 100 // maximum length for the filename
 	realPath := f.RealPath()
 	modTime := f.ModTime.Unix()
 	previewSizeStr := fmt.Sprintf("%d", previewSize)
+
+	// Construct the cache key
 	cacheKey := fmt.Sprintf("%x%x%x", realPath, modTime, previewSizeStr)
 	if len(cacheKey) > maxLength {
 		cacheKey = fmt.Sprintf("%x%x", cacheKey[:maxLength-10], cacheKey[len(cacheKey)-10:])
 	}
 	return cacheKey
-}
-
-func createVideoThumb(ctx context.Context, path string) ([]byte, error) {
-	return createThumb(ctx, path, "-hwaccel", "vaapi")
-}
-
-func createVideoThumbCPU(ctx context.Context, path string) ([]byte, error) {
-	return createThumb(ctx, path)
-}
-
-func createThumb(ctx context.Context, path string, args ...string) ([]byte, error) {
-	ffmpegArgs := []string{"-y", "-i", path,
-		"-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128", "-quality",
-		"40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-"}
-
-	cmdArgs := append(args, ffmpegArgs...)
-	cmd := exec.CommandContext(ctx, "ffmpeg", cmdArgs...)
-
-	var buf bytes.Buffer
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Start(); err != nil {
-		return nil, err
-	}
-
-	if _, err := io.Copy(&buf, stdout); err != nil {
-		return nil, err
-	}
-
-	if err := cmd.Wait(); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
