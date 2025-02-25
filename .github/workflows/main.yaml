@@ -137,18 +137,28 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
-      - name: Generate version number
-        id: version
+      - name: Get latest upstream tag
+        id: get_tag
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
-          NEW_TAG="${LATEST_TAG}-$(date +'%Y.%m.%d-%H.%M.%S')"
-          echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+      - name: Check if tag exists and delete if necessary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if git ls-remote --exit-code --tags origin refs/tags/${{ steps.get_tag.outputs.tag }} >/dev/null 2>&1; then
+            echo "Tag ${{ steps.get_tag.outputs.tag }} exists. Deleting tag and release..."
+            git push --delete origin ${{ steps.get_tag.outputs.tag }}
+            gh release delete ${{ steps.get_tag.outputs.tag }} --yes
+          else
+            echo "Tag ${{ steps.get_tag.outputs.tag }} does not exist."
+          fi
       - name: Create and push tag
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git tag ${{ steps.version.outputs.version }}
-          git push origin ${{ steps.version.outputs.version }}
+          git tag ${{ steps.get_tag.outputs.tag }}
+          git push origin ${{ steps.get_tag.outputs.tag }}
       - uses: actions/download-artifact@v4
         with:
           name: backend-dist
@@ -157,6 +167,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: backend-dist/*.tar.gz
-          tag_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.get_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+  
