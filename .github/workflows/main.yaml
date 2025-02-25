@@ -142,39 +142,25 @@ jobs:
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-      - name: Delete existing releases and tags
+      - name: Delete all releases and tags
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          TAG="${{ steps.get_tag.outputs.tag }}"
-          echo "Checking for releases with tag: $TAG"
-          
-          # List all releases
+          # Delete all releases
           RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            "https://api.github.com/repos/maxlieb/filebrowser/releases?per_page=100")
-          
-          # Check if the RELEASES is a valid JSON array
-          if echo "$RELEASES" | jq -e 'try (.[] | .id) catch false' >/dev/null 2>&1; then
-            # Extract and delete all release IDs matching the tag
-            echo "$RELEASES" | jq -r ".[] | select(.tag_name == \"$TAG\") | .id" | while read -r id; do
-              if [ ! -z "$id" ]; then
-                echo "Deleting release with ID: $id"
-                curl -X DELETE -H "Authorization: token ${{ secrets.GH_PAT }}" \
-                  "https://api.github.com/repos/maxlieb/filebrowser/releases/$id"
-              fi
-            done
-          else
-            echo "Error: Failed to retrieve release information from API."
-          fi
-          
-          # Delete the tag if it exists
-          if git ls-remote --exit-code --tags origin refs/tags/$TAG >/dev/null 2>&1; then
-            echo "Tag $TAG exists. Deleting tag..."
-            git push --delete origin $TAG
-            echo "Tag deleted."
-          else
-            echo "Tag $TAG does not exist."
-          fi
+            "https://api.github.com/repos/maxlieb/filebrowser/releases")
+          echo "$RELEASES" | jq -r '.[].id' | while read -r id; do
+            echo "Deleting release with ID: $id"
+            curl -X DELETE -H "Authorization: token ${{ secrets.GH_PAT }}" \
+              "https://api.github.com/repos/maxlieb/filebrowser/releases/$id"
+          done
+  
+          # Delete all tags
+          git fetch --tags
+          git tag | while read -r tag; do
+            echo "Deleting tag: $tag"
+            git push --delete origin "$tag"
+          done
       - name: Create and push tag
         run: |
           git config user.name github-actions
@@ -192,3 +178,4 @@ jobs:
           tag_name: ${{ steps.get_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
