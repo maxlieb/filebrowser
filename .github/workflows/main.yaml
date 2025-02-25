@@ -150,9 +150,17 @@ jobs:
           echo "Checking for tag: $TAG"
           
           # List all releases and find the one with the matching tag
-          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            "https://api.github.com/repos/maxlieb/filebrowser/releases" | \
-            jq -r ".[] | select(.tag_name == \"$TAG\") | .id")
+          RELEASE_INFO=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            "https://api.github.com/repos/maxlieb/filebrowser/releases")
+          
+          # Check if the RELEASE_INFO is a valid JSON
+          if echo "$RELEASE_INFO" | jq empty >/dev/null 2>&1; then
+            echo "Error: Failed to retrieve release information from API."
+            RELEASE_ID=""
+          else
+            # Extract the release ID
+            RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r ".[] | select(.tag_name == \"$TAG\") | .id")
+          fi
           
           if [ ! -z "$RELEASE_ID" ]; then
             echo "Found release with ID: $RELEASE_ID. Deleting..."
@@ -174,4 +182,19 @@ jobs:
           fi
       - name: Create and push tag
         run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag ${{ steps.get_tag.outputs.tag }}
+          git push origin ${{ steps.get_tag.outputs.tag }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend-dist
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: backend-dist/*.tar.gz
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
