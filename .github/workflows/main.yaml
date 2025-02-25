@@ -147,33 +147,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           TAG="${{ steps.get_tag.outputs.tag }}"
+          echo "Checking for tag: $TAG"
+          
+          # List all releases and find the one with the matching tag
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            "https://api.github.com/repos/maxlieb/filebrowser/releases" | \
+            jq -r ".[] | select(.tag_name == \"$TAG\") | .id")
+          
+          if [ ! -z "$RELEASE_ID" ]; then
+            echo "Found release with ID: $RELEASE_ID. Deleting..."
+            # Delete the release
+            curl -X DELETE -H "Authorization: token ${{ secrets.GH_PAT }}" \
+              "https://api.github.com/repos/maxlieb/filebrowser/releases/$RELEASE_ID"
+            echo "Release deleted."
+          else
+            echo "No existing release found for tag $TAG"
+          fi
+          
+          # Check if the tag exists and delete it
           if git ls-remote --exit-code --tags origin refs/tags/$TAG >/dev/null 2>&1; then
-            echo "Tag $TAG exists. Deleting tag and release..."
-            # Get release ID by tag
-            RELEASE_ID=$(curl -s https://api.github.com/repos/maxlieb/filebrowser/releases/tags/$TAG | jq -r .id)
-            echo "Release ID: $RELEASE_ID"
-            # Delete release by ID
-            curl -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GH_PAT }}" "https://api.github.com/repos/maxlieb/filebrowser/releases/$RELEASE_ID"
-            # Delete tag
+            echo "Tag $TAG exists. Deleting tag..."
             git push --delete origin $TAG
+            echo "Tag deleted."
           else
             echo "Tag $TAG does not exist."
           fi
       - name: Create and push tag
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git tag ${{ steps.get_tag.outputs.tag }}
-          git push origin ${{ steps.get_tag.outputs.tag }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend-dist
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: backend-dist/*.tar.gz
-          tag_name: ${{ steps.get_tag.outputs.tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
