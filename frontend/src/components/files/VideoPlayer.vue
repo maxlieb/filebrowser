@@ -61,8 +61,9 @@ const initVideoPlayer = async () => {
     const lang = document.documentElement.lang;
     const languagePack = await (
       languageImports[lang] || languageImports.en
-    )?.();
-    videojs.addLanguage("videoPlayerLocal", languagePack.default);
+    )?.();    
+    const code = languageImports[lang] ? lang : "en";
+    videojs.addLanguage(code, languagePack.default);
     sourceType.value = "";
 
     //
@@ -70,7 +71,7 @@ const initVideoPlayer = async () => {
 
     const srcOpt = { sources: { src: props.source, type: sourceType.value } };
     //Supporting localized language display.
-    const langOpt = { language: "videoPlayerLocal" };
+    const langOpt = { language: code };
     // support for playback at different speeds.
     const playbackRatesOpt = { playbackRates: [0.5, 1, 1.5, 2, 2.5, 3] };
     const options = getOptions(
