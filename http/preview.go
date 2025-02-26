@@ -106,9 +106,11 @@ func handleVideoPreview(
 		jobTokens <- struct{}{}
 		defer func() { <-jobTokens }()
 
+		// Set hwaccel based on the OS in a single line
+		hwAccel := map[string]string{"linux": "vaapi", "windows": "dxva2", "darwin": "videotoolbox"}[runtime.GOOS]
 		// Try ffmpeg with hardware acceleration first
 		ffmpegArgs := []string{
-			"-y", "-hwaccel", "vaapi", "-i", path,
+			"-y", "-hwaccel", hwAccel, "-i", path,
 			"-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128",
 			"-quality", "40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-",
 		}
