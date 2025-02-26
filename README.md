@@ -6,7 +6,7 @@ and further customized.
 
 customaizations include:
 * Generation into a .thumbnails subfolder with files in addition to cache mechanism.
-* <s>Intel hardware QSV acceleration.</s> changed to vaapi for more compatibilty.
+* <s>Intel hardware QSV acceleration.</s> Dynamically selects HW acceleration method according to OS for maximum comaptibility (Linux: Vaapi, Windows: dxva2, Mac: Videotoolbox)
 * Thumbnails will stop generating when leaving a folder to allow generating for the next folder before finishing the last one.
 
 ** Obvoisly requires ffmpeg, <s>an intel card + drivers.</s>
