@@ -11,6 +11,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/afero"
@@ -79,6 +81,97 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 	})
 }
 
+
+// detectGPU detects the GPU based on the OS.
+func detectGPU() string {
+	switch runtime.GOOS {
+	case "windows":
+		return detectWindowsGPU()
+	case "linux":
+		return detectLinuxGPU()
+	case "darwin":
+		return detectMacGPU()
+	default:
+		return "Unsupported OS"
+	}
+}
+
+// detectWindowsGPU detects the GPU on Windows using dxdiag (faster than WMIC).
+func detectWindowsGPU() string {
+	cmd := exec.Command("cmd", "/C", "dxdiag /t dxdiag.txt && findstr /C:\"Card name\" dxdiag.txt")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return "Unknown GPU"
+	}
+
+	lines := strings.Split(out.String(), "\n")
+	if len(lines) > 0 {
+		return strings.TrimSpace(strings.Split(lines[0], ":")[1])
+	}
+	return "Unknown GPU"
+}
+
+// detectLinuxGPU detects the GPU on Linux using lspci.
+func detectLinuxGPU() string {
+	cmd := exec.Command("sh", "-c", "lspci | grep VGA")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return "Unknown GPU"
+	}
+
+	lines := strings.Split(out.String(), "\n")
+	if len(lines) > 0 {
+		return strings.TrimSpace(lines[0])
+	}
+	return "Unknown GPU"
+}
+
+// detectMacGPU detects the GPU on macOS using system_profiler.
+func detectMacGPU() string {
+	cmd := exec.Command("system_profiler", "SPDisplaysDataType")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return "Unknown GPU"
+	}
+
+	lines := strings.Split(out.String(), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "Chipset Model") {
+			return strings.TrimSpace(strings.Split(line, ":")[1])
+		}
+	}
+	return "Unknown GPU"
+}
+
+// selectFFmpegAccel selects the appropriate FFmpeg hardware acceleration based on the detected GPU.
+func selectFFmpegAccel(gpu string) string {
+	gpu = strings.ToLower(gpu)
+
+	if strings.Contains(gpu, "nvidia") {
+		return "cuda"
+	} else if strings.Contains(gpu, "amd") || strings.Contains(gpu, "radeon") {
+		if runtime.GOOS == "windows" {
+			return "d3d11va" // AMD on Windows uses d3d11va
+		} else {
+			return "vaapi" // AMD on Linux uses VAAPI
+		}
+	} else if strings.Contains(gpu, "intel") {
+		if runtime.GOOS == "darwin" {
+			return "videotoolbox" // Intel-based Macs use VideoToolbox
+		}
+		return "qsv"
+	} else if runtime.GOOS == "darwin" {
+		return "videotoolbox"
+	}
+	return "software"
+}
+
 func handleVideoPreview(
 	ctx context.Context,
 	w http.ResponseWriter,
@@ -106,12 +199,18 @@ func handleVideoPreview(
 		jobTokens <- struct{}{}
 		defer func() { <-jobTokens }()
 
-		// Try ffmpeg with hardware acceleration first
+		gpu := detectGPU()
+		accel := selectFFmpegAccel(gpu)
+		fmt.Println("Detected GPU:", gpu)
+		fmt.Println("Selected FFmpeg Acceleration:", accel)
+
+		// Example integration into preview.go (replace "vaapi" with detected accel method)
 		ffmpegArgs := []string{
-			"-y", "-hwaccel", "vaapi", "-i", path,
+			"-y", "-hwaccel", accel, "-i", "input.mp4",
 			"-vf", "thumbnail,crop=w='min(iw,ih)':h='min(iw,ih)',scale=128:128",
 			"-quality", "40", "-frames:v", "1", "-c:v", "webp", "-f", "image2pipe", "-",
 		}
+		fmt.Println("FFmpeg command:", strings.Join(ffmpegArgs, " "))
 
 		resizedImage, err = runFFmpeg(ctx, ffmpegArgs)
 		if err != nil {
