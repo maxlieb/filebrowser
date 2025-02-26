@@ -60,7 +60,7 @@ jobs:
         with:
           go-version: 1.23.0
       - run: make test-backend
-  
+
   test:
     runs-on: ubuntu-latest
     needs: [test-frontend, test-backend]
@@ -102,39 +102,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: 1.23.0
-      - name: Install backend dependencies
-        run: |
-          go mod download
-      - name: Download frontend build
-        uses: actions/download-artifact@v4
+
+      - name: Set up GoReleaser
+        uses: goreleaser/goreleaser-action@v2
         with:
-          name: frontend-dist
-          path: frontend/dist
-      - name: Build backend binaries with frontend
-        run: |
-          mkdir -p dist
-          cp -r frontend/dist public
-          for os in linux darwin windows; do
-            for arch in amd64 arm64; do
-              echo "Building for $os/$arch..."
-              output="dist/${os}_${arch}-filebrowser"
-              if [ "$os" == "windows" ]; then
-                output="${output}.exe"
-              fi
-              GOOS=$os GOARCH=$arch go build -o "$output"
-              if [ "$os" == "linux" ]; then
-                tar -czvf "${output}.tar.gz" -C dist "${os}_${arch}-filebrowser"
-              else
-                (cd dist && zip -r "${os}_${arch}-filebrowser.zip" "${os}_${arch}-filebrowser"*)
-              fi
-            done
-          done
-          rm -rf public
-      - name: Archive backend build
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-dist
-          path: dist/*.{tar.gz,zip}
+          version: latest
+          args: build --rm-dist # just build don't release
 
   release:
     runs-on: ubuntu-latest
@@ -142,32 +115,13 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
-
-      - name: List available artifacts # Debugging step
-        uses: actions/github-script@v6
         with:
-          script: |
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId,
-            });
-            console.log(artifacts.data);
+          fetch-depth: 0
 
-      - name: Download backend build
-        uses: actions/download-artifact@v4
+      - name: Set up GoReleaser
+        uses: goreleaser/goreleaser-action@v2
         with:
-          name: backend-dist
-          path: backend-dist
-
-      - name: List downloaded files
-        run: ls -R backend-dist
-
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: backend-dist/*
-          tag_name: ${{ steps.get_tag.outputs.tag }}
+          version: latest
+          args: release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
