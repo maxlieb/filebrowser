@@ -12,9 +12,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"runtime"
-	
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/afero"
@@ -40,10 +39,10 @@ const privateFilePerm os.FileMode = 0600
 const ffmpegJobLimit = 4
 
 const (
-	unknownGPU     = "Unknown GPU"
-	videoToolbox   = "videotoolbox"
-	osDarwin       = "darwin"
-	osWindows      = "windows"
+	unknownGPU   = "Unknown GPU"
+	videoToolbox = "videotoolbox"
+	osDarwin     = "darwin"
+	osWindows    = "windows"
 )
 
 var (
