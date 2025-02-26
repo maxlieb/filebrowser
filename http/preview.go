@@ -167,9 +167,8 @@ func selectFFmpegAccel(gpu string) string {
 	} else if strings.Contains(gpu, "amd") || strings.Contains(gpu, "radeon") {
 		if runtime.GOOS == osWindows {
 			return "d3d11va" // AMD on Windows uses d3d11va
-		} else {
-			return "vaapi" // AMD on Linux uses VAAPI
 		}
+		return "vaapi" // AMD on Linux uses VAAPI
 	} else if strings.Contains(gpu, "intel") {
 		if runtime.GOOS == osDarwin {
 			return videoToolbox // Intel-based Macs use VideoToolbox
