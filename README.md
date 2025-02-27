@@ -1,34 +1,44 @@
-Fork info:
-This fork implements generating video thumbnails.
+<h2>Fork Information</h2>
 
-Inspired by this fork https://github.com/cody82/filebrowser/tree/videopreview
-and further customized.
+<p>This fork adds <strong>video thumbnail generation</strong> to FileBrowser.</p>
 
-customaizations include:
-* Generation into a .thumbnails subfolder with files in addition to cache mechanism.
-* <s>Intel hardware QSV acceleration.</s> <br/>
-   Uses HW Acceleration, and dynamically selects the method according to OS for maximum comaptibility<br/>
-   (Linux: Vaapi, Windows: dxva2, Mac: Videotoolbox)
-* Thumbnails will stop generating when leaving a folder to allow generating for the next folder before finishing the last one.
+<p>Inspired by <a href="https://github.com/cody82/filebrowser/tree/videopreview">this fork</a> by cody82, but further customized.</p>
 
-** Obvoisly requires ffmpeg, <s>an intel card + drivers.</s>
+<h3>Customizations include:</h3>
+<ul>
+  <li>Thumbnails are stored in a <code>.thumbnails</code> subfolder, alongside the existing cache mechanism.</li>
+  <li><strong>Hardware acceleration</strong> is dynamically selected based on the OS for maximum compatibility:
+    <ul>
+      <li><strong>Linux</strong>: VA-API</li>
+      <li><strong>Windows</strong>: DXVA2</li>
+      <li><strong>Mac</strong>: VideoToolbox</li>
+    </ul>
+  </li>
+  <li>Thumbnail generation <strong>pauses when leaving a folder</strong>, allowing new folders to start processing without waiting for previous ones to finish.</li>
+</ul>
 
-** Uses the ctx utility to impelent the feature of stoppeing generation<s>, so probably not compatible with windows.</s>
+<h3>Requirements</h3>
+<ul>
+  <li><strong>FFmpeg</strong> is required.</li>
+  <li>The <strong>ctx utility</strong> is used to handle stopping thumbnail generation.</li>
+</ul>
 
-** 22-Feb-25 - from now on this fork should automatically be kept up-to date thanks to github actions.
+<h3>Notes</h3>
+<ul>
+  <li><strong>22-Feb-25</strong> – This fork will now be <strong>automatically kept up to date</strong> via GitHub Actions.</li>
+  <li>The following files were modified:
+    <ul>
+      <li><code>/http/preview.go</code></li>
+      <li><code>/frontend/src/components/files/ListingItem.vue</code></li>
+    </ul>
+  </li>
+</ul>
 
-Modified files are:
+<h3>About This Project</h3>
+<p>ChatGPT was heavily involved in generating the code.</p>
+<p>Although I have programming experience and even a <strong>software engineering degree</strong>, my career path led me to <strong>IT and System Administration</strong>.</p>
+<p>This is my <strong>first real experience with Golang</strong>, so go easy on me! 😅</p>
 
-/http/preview.go
-
-/frontend/src/components/files/ListingItem.vue
-
-ChadGPT havevily used in generating the code.
-
-Although I have some programming skills and even a software engeneering degree, 
-my career path led me to IT and System Administration.
-
-This is basically my first experience with golang, so don't be harsh.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/filebrowser/logo/master/banner.png" width="550"/>
