@@ -14,8 +14,8 @@ jobs:
           fetch-depth: 0
       - name: Set up Git user
         run: |
-          git config --global user.name "Your Name"
-          git config --global user.email "your-email@example.com"
+          git config --global user.name "Max Lieberman"
+          git config --global user.email "maxlieb90@gmail.com"
       - name: Sync Fork
         run: |
           git remote add upstream https://github.com/filebrowser/filebrowser.git
