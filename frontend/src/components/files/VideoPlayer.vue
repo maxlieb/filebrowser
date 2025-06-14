@@ -61,7 +61,7 @@ const initVideoPlayer = async () => {
     const lang = document.documentElement.lang;
     const languagePack = await (
       languageImports[lang] || languageImports.en
-    )?.();    
+    )?.();
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);
     sourceType.value = "";
