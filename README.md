@@ -1,4 +1,46 @@
 #
+<h2>Fork Information</h2>
+
+<p>This fork adds <strong>video thumbnail generation</strong> to FileBrowser.</p>
+
+<p>Inspired by <a href="https://github.com/cody82/filebrowser/tree/videopreview">this fork</a> by cody82, but further customized.</p>
+
+<h3>Customizations include:</h3>
+<ul>
+  <li>Thumbnails are stored in a <code>.thumbnails</code> subfolder, alongside the existing cache mechanism.</li>
+  <li><strong>Hardware acceleration</strong> is dynamically selected based on the OS for maximum compatibility:
+    <ul>
+      <li><strong>Linux</strong>: VA-API</li>
+      <li><strong>Windows</strong>: DXVA2</li>
+      <li><strong>Mac</strong>: VideoToolbox</li>
+    </ul>
+  </li>
+  <li>Thumbnail generation <strong>pauses when leaving a folder</strong>, allowing new folders to start processing without waiting for previous ones to finish.</li>
+</ul>
+
+<h3>Requirements</h3>
+<ul>
+  <li><strong>FFmpeg</strong> is required.</li>
+  <li>The <strong>ctx utility</strong> is used to handle stopping thumbnail generation.</li>
+</ul>
+
+<h3>Notes</h3>
+<ul>
+  <li><strong>22-Feb-25</strong> – This fork will now be <strong>automatically kept up to date</strong> via GitHub Actions.</li>
+  <li>The following files were modified:
+    <ul>
+      <li><code>/http/preview.go</code></li>
+      <li><code>/frontend/src/components/files/ListingItem.vue</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3>About This Project</h3>
+<p>ChatGPT was heavily involved in generating the code.</p>
+<p>Although I have programming experience and even a <strong>software engineering degree</strong>, my career path led me to <strong>IT and System Administration</strong>.</p>
+<p>This is my <strong>first real experience with Golang</strong>, so go easy on me! 😅</p>
+
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/filebrowser/logo/master/banner.png" width="550"/>
 </p>
