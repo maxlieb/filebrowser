@@ -1,45 +1,4 @@
-<h2>Fork Information</h2>
-
-<p>This fork adds <strong>video thumbnail generation</strong> to FileBrowser.</p>
-
-<p>Inspired by <a href="https://github.com/cody82/filebrowser/tree/videopreview">this fork</a> by cody82, but further customized.</p>
-
-<h3>Customizations include:</h3>
-<ul>
-  <li>Thumbnails are stored in a <code>.thumbnails</code> subfolder, alongside the existing cache mechanism.</li>
-  <li><strong>Hardware acceleration</strong> is dynamically selected based on the OS for maximum compatibility:
-    <ul>
-      <li><strong>Linux</strong>: VA-API</li>
-      <li><strong>Windows</strong>: DXVA2</li>
-      <li><strong>Mac</strong>: VideoToolbox</li>
-    </ul>
-  </li>
-  <li>Thumbnail generation <strong>pauses when leaving a folder</strong>, allowing new folders to start processing without waiting for previous ones to finish.</li>
-</ul>
-
-<h3>Requirements</h3>
-<ul>
-  <li><strong>FFmpeg</strong> is required.</li>
-  <li>The <strong>ctx utility</strong> is used to handle stopping thumbnail generation.</li>
-</ul>
-
-<h3>Notes</h3>
-<ul>
-  <li><strong>22-Feb-25</strong> – This fork will now be <strong>automatically kept up to date</strong> via GitHub Actions.</li>
-  <li>The following files were modified:
-    <ul>
-      <li><code>/http/preview.go</code></li>
-      <li><code>/frontend/src/components/files/ListingItem.vue</code></li>
-    </ul>
-  </li>
-</ul>
-
-<h3>About This Project</h3>
-<p>ChatGPT was heavily involved in generating the code.</p>
-<p>Although I have programming experience and even a <strong>software engineering degree</strong>, my career path led me to <strong>IT and System Administration</strong>.</p>
-<p>This is my <strong>first real experience with Golang</strong>, so go easy on me! 😅</p>
-
-
+#
 <p align="center">
   <img src="https://raw.githubusercontent.com/filebrowser/logo/master/banner.png" width="550"/>
 </p>
@@ -67,28 +26,27 @@ filebrowser provides a file managing interface within a specified directory and 
 [issues]: https://github.com/filebrowser/filebrowser/issues
 [discussions]: https://github.com/filebrowser/filebrowser/discussions
 
-## Demo
-
-URL: https://demo.filebrowser.org/
-
-Credentials: `demo`/`demo`
-
 ## Features
 
-Please refer to our docs at [https://filebrowser.org/features](https://filebrowser.org/features)
+File Browser is a **create-your-own-cloud-kind** of software where you can install it on a server, direct it to a path and then access your files through a nice web interface. You have many available features!
+
+|    Easy Login System     |     Sleek Interface      |     User Management      |
+| :----------------------: | :----------------------: | :----------------------: |
+| ![](docs/assets/1.jpg) | ![](docs/assets/2.jpg) | ![](docs/assets/3.jpg) |
+
+
+|       File Editing       |     Custom Commands      |      Customization       |
+| :----------------------: | :----------------------: | :----------------------: |
+| ![](docs/assets/4.jpg) | ![](docs/assets/5.jpg) | ![](docs/assets/6.jpg) |
 
 ## Install
 
-For installation instructions please refer to our docs at [https://filebrowser.org/installation](https://filebrowser.org/installation).
+For information on how to install File Browser, please check [installation](docs/installation.md).
 
 ## Configuration
 
-[Authentication Method](https://filebrowser.org/configuration/authentication-method) - You can change the way the user authenticates with the filebrowser server
-
-[Command Runner](https://filebrowser.org/configuration/command-runner) - The command runner is a feature that enables you to execute any shell command you want before or after a certain event.
-
-[Custom Branding](https://filebrowser.org/configuration/custom-branding) - You can customize your File Browser installation by change its name to any other you want, by adding a global custom style sheet and by using your own logotype if you want.
+For information on how to configure File Browser, please check [configuration](docs/configuration.md).
 
 ## Contributing
 
-If you're interested in contributing to this project, our docs are best places to start [https://filebrowser.org/contributing](https://filebrowser.org/contributing).
+For information on how to contribute to the project, including how translations are managed, please check [contributing](docs/contributing.md).
