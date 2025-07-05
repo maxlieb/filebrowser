@@ -2,12 +2,8 @@ name: Sync Fork
 
 on:
   schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  workflows: write
+    - cron: '0 0 * * *' # Runs at 00:00 UTC every day
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   sync:
@@ -20,10 +16,10 @@ jobs:
         run: |
           git config --global user.name "Max Lieberman"
           git config --global user.email "maxlieb90@gmail.com"
-      - name: Sync Fork (force mirror)
+      - name: Sync Fork
         run: |
           git remote add upstream https://github.com/filebrowser/filebrowser.git
           git fetch upstream
           git checkout master
-          git reset --hard upstream/master
-          git push origin master --force
+          git merge upstream/master
+          git push origin master
